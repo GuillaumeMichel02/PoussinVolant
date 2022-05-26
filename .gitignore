@@ -1,0 +1,8 @@
+Makefile
+GreenJump
+GreenJump.opk
+/bin/
+script.sh
+stderr.txt
+stdout.txt
+/.vscode/
