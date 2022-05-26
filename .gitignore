@@ -1,8 +1,10 @@
 Makefile
 GreenJump
 GreenJump.opk
-/bin/
+/bin/PoussinVolant.exe
 script.sh
 stderr.txt
 stdout.txt
 /.vscode/
+/toopk/
+PoussinVolant.zip

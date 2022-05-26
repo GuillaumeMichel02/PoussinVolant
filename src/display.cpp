@@ -9,7 +9,7 @@ Display::Display()
                          SDL_HWSURFACE | SDL_DOUBLEBUF);
     SDL_ShowCursor(0);
 
-    std::string spriteSheetFile = "res/spritesheet.png";
+    std::string spriteSheetFile = "../res/spritesheet.png";
     spriteSheet = loadImage(spriteSheetFile, true);
 
     spriteGeneralMap.insert(std::pair<spriteName, SpriteBlit>(Background, SpriteBlit(0,240,240,480)));
