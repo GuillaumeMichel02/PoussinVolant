@@ -1,17 +1,20 @@
 //Include SDL functions and datatypes
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
+#include <SDL/SDL_framerate.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
 #include <string>
+#include <map>
 
 // #include "menu.h"
 // #include "game.h"
 #include "display.h"
 // #include "input.h"
 
+const int FRAMES_PER_SECOND = 30;
 
 
 int main(int argc, char *argv[])
@@ -22,21 +25,37 @@ int main(int argc, char *argv[])
 
     SDL_Event event;
 
+    FPSmanager* fpsManager = new FPSmanager;
+
+    SDL_initFramerate(fpsManager);
+
+
     Display display;
 
-    int movementFrame = 0;
-    int frame = 0;
-    
+    std::map <std::string, int> autoScrollCycle;
+    autoScrollCycle.insert(std::pair<std::string, int>("Background",0));
+    autoScrollCycle.insert(std::pair<std::string, int>("Obstacle",-120));
+
+    int obstacleHeightArray[3] = {100, 80, 120};
+
+    const int OBSTACLE_GAP = 80;
 
     while ( running )
     {   
-        if(frame == 0)
+        SDL_framerateDelay(fpsManager);	
+
+        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP);
+        
+        autoScrollCycle["Background"] += 2;
+        autoScrollCycle["Background"] = autoScrollCycle["Background"]%240;
+        autoScrollCycle["Obstacle"] += 2;
+        if (autoScrollCycle["Obstacle"] == 120)
         {
-            display.renderGame(movementFrame);
-            movementFrame += 1;
-            movementFrame = movementFrame%240;
+            autoScrollCycle["Obstacle"] = 0;
+            obstacleHeightArray[0] = obstacleHeightArray[1];
+            obstacleHeightArray[1] = obstacleHeightArray[2];
+            obstacleHeightArray[2] = 50 + rand()%100;
         }
-        frame = (frame+1)%10000;
         
         while( SDL_PollEvent(&event) )
         { 
@@ -98,6 +117,7 @@ int main(int argc, char *argv[])
         
     }
 
+    delete fpsManager;
     /// Deinit SDL
     SDL_Quit();
 

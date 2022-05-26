@@ -27,11 +27,11 @@ class Display
         std::map<int, SpriteBlit> spritePoussinMap;
 
         SDL_Surface* loadImage( std::string filename, bool transparency );
-        void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
+        // void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
     public:
         Display();
         ~Display();
-        void renderGame(int movementFrame);
+        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP);
 };
 
 #endif
