@@ -23,15 +23,17 @@ class Display
     private:
         SDL_Surface* screen;
         SDL_Surface* spriteSheet;
-        std::map<spriteName,SpriteBlit> spriteGeneralMap;
+        std::map<std::string,SDL_Surface*> spriteGeneralMap;
         std::map<int, SpriteBlit> spritePoussinMap;
+
+        SDL_Surface* background;
 
         SDL_Surface* loadImage( std::string filename, bool transparency );
         // void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
     public:
-        Display(SDL_Surface* screen);
+        Display(SDL_Surface* screen, int OBSTACLE_GAP);
         ~Display();
-        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP);
+        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int skinNumber);
         void renderTime(SDL_Surface* timeMessage);
 };
 
