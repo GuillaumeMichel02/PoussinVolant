@@ -1,13 +1,14 @@
 //Include SDL functions and datatypes
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
+#include <SDL/SDL_image.h>
 #include <SDL/SDL_framerate.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <iostream>
 #include <string>
 #include <map>
+#include <sstream>
 
 // #include "menu.h"
 // #include "game.h"
@@ -15,6 +16,7 @@
 // #include "input.h"
 
 const int FRAMES_PER_SECOND = 30;
+
 
 
 int main(int argc, char *argv[])
@@ -25,12 +27,27 @@ int main(int argc, char *argv[])
 
     SDL_Event event;
 
-    FPSmanager* fpsManager = new FPSmanager;
 
-    SDL_initFramerate(fpsManager);
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_ShowCursor(0);
 
+    SDL_Surface* screen = SDL_SetVideoMode(240, 240, 32,
+                          SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
 
-    Display display;
+    // image = load_image("res/spritesheet1.png");
+    // apply_surface(0,0,image,screen);
+
+    // SDL_UpdateRect(screen, 0,0,0,0);
+
+    TTF_Init();
+
+    TTF_Font *font = TTF_OpenFont("res/lazy.ttf", 28);
+
+    SDL_Color textColor = {0,0,0};
+
+    SDL_Surface* timeMessage = NULL;
+
+    Display display(screen);
 
     std::map <std::string, int> autoScrollCycle;
     autoScrollCycle.insert(std::pair<std::string, int>("Background",0));
@@ -41,14 +58,13 @@ int main(int argc, char *argv[])
     const int OBSTACLE_GAP = 80;
 
     while ( running )
-    {   
-        SDL_framerateDelay(fpsManager);	
-
-        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP);
-        
-        autoScrollCycle["Background"] += 2;
+    {      
+        //SDL_framerateDelay(fpsManager);
+        std::stringstream execTimeShow;
+        int execTime = SDL_GetTicks();
+        autoScrollCycle["Background"] += 3;
         autoScrollCycle["Background"] = autoScrollCycle["Background"]%240;
-        autoScrollCycle["Obstacle"] += 2;
+        autoScrollCycle["Obstacle"] += 3;
         if (autoScrollCycle["Obstacle"] == 120)
         {
             autoScrollCycle["Obstacle"] = 0;
@@ -56,6 +72,17 @@ int main(int argc, char *argv[])
             obstacleHeightArray[1] = obstacleHeightArray[2];
             obstacleHeightArray[2] = 50 + rand()%100;
         }
+        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP);
+
+        execTime = SDL_GetTicks() - execTime;
+        
+        execTimeShow << execTime;
+
+        timeMessage = TTF_RenderText_Solid(font, execTimeShow.str().c_str(), textColor);
+        display.renderTime(timeMessage);
+
+        SDL_Delay(33 - execTime);
+        
         
         while( SDL_PollEvent(&event) )
         { 
@@ -116,8 +143,7 @@ int main(int argc, char *argv[])
         }
         
     }
-
-    delete fpsManager;
+    delete timeMessage;
     /// Deinit SDL
     SDL_Quit();
 

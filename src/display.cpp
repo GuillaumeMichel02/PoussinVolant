@@ -7,14 +7,10 @@ const SpriteBlit SPRITE_FOREGROUND = SpriteBlit(0,456,240,24);
 const SpriteBlit SPRITE_OBSTACLEDOWN = SpriteBlit(0,0,64,128);
 const SpriteBlit SPRITE_OBSTACLEUP = SpriteBlit(64,0,64,128);
 
-Display::Display()
+Display::Display(SDL_Surface* screen_temp)
 {
-    SDL_Init(SDL_INIT_VIDEO);
-    screen = SDL_SetVideoMode(240, 240, 32,
-                         SDL_HWSURFACE | SDL_DOUBLEBUF);
-    SDL_ShowCursor(0);
-
-    std::string spriteSheetFile = "../res/spritesheet.png";
+    screen = screen_temp;
+    std::string spriteSheetFile = "res/spritesheet1.png";
     spriteSheet = loadImage(spriteSheetFile, true);
 
     spriteGeneralMap.insert(std::pair<spriteName, SpriteBlit>(Background, SpriteBlit(0,240,240,480)));
@@ -53,9 +49,11 @@ SDL_Surface* Display::loadImage( std::string filename, bool transparency = false
     return optimizedImage;
 }
 
-void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit spriteBlit, SDL_Surface* destination )
+void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit)
 {
-    if (xPosition >= 240 || yPosition >= 240 || xPosition + spriteBlit.XSize < 0 || yPosition + spriteBlit.YSize < 0) return;
+    if (xPosition >= 240 || yPosition >= 240) return;
+
+    if (xPosition + spriteBlit->XSize < 0 || yPosition + spriteBlit->YSize < 0) return;
 
     //Make a temporary rectangle to hold the offsets
     SDL_Rect offset;
@@ -66,11 +64,13 @@ void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit
     offset.y = yPosition;
 
     //Crop according to the spriteBlit
-
-    crop.x = spriteBlit.XOffSet;
-    crop.y = spriteBlit.YOffSet;
-    crop.w = spriteBlit.XSize;
-    crop.h = spriteBlit.YSize;
+    if(spriteBlit != NULL)
+    {
+        crop.x = spriteBlit->XOffSet;
+        crop.y = spriteBlit->YOffSet;
+        crop.w = spriteBlit->XSize;
+        crop.h = spriteBlit->YSize;
+    }
 
     if(xPosition<0)
     {
@@ -91,25 +91,31 @@ void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit
     
 }
 
+void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination)
+{
+    const SpriteBlit spriteBlit = SpriteBlit(0,0,source->w,source->h);
+    applySurface(xPosition, yPosition, source, destination, &spriteBlit);
+}
+
 void renderBackground(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std::string,int> autoScrollCycle)
 {
-    applySurface(-autoScrollCycle.at("Background"),0,spriteSheet,SPRITE_BACKGROUND,screen);
-    applySurface(240-autoScrollCycle.at("Background"),0,spriteSheet,SPRITE_BACKGROUND,screen);
+    applySurface(-autoScrollCycle.at("Background"),0,spriteSheet,screen,&SPRITE_BACKGROUND);
+    applySurface(240-autoScrollCycle.at("Background"),0,spriteSheet,screen,&SPRITE_BACKGROUND);
 }
 
 void renderObstacle(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP)
 {
     for(int i = 0; i < obstacleNumber; i++)
     {
-        applySurface(120*i-autoScrollCycle.at("Obstacle"),240-obstacleHeightArray[i],spriteSheet, SPRITE_OBSTACLEUP, screen);
-        applySurface(120*i-autoScrollCycle.at("Obstacle"),120-obstacleHeightArray[i]-OBSTACLE_GAP, spriteSheet, SPRITE_OBSTACLEDOWN, screen);
+        applySurface(120*i-autoScrollCycle.at("Obstacle"),240-obstacleHeightArray[i],spriteSheet, screen, &SPRITE_OBSTACLEUP);
+        applySurface(120*i-autoScrollCycle.at("Obstacle"),120-obstacleHeightArray[i]-OBSTACLE_GAP, spriteSheet, screen, &SPRITE_OBSTACLEDOWN);
     }
 }
 
 void renderForeground(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std::string,int> autoScrollCycle)
 {
-    applySurface(-autoScrollCycle.at("Background"),216,spriteSheet,SPRITE_FOREGROUND,screen);
-    applySurface(240-autoScrollCycle.at("Background"),216,spriteSheet,SPRITE_FOREGROUND,screen);
+    applySurface(-autoScrollCycle.at("Background"),216,spriteSheet,screen,&SPRITE_FOREGROUND);
+    applySurface(240-autoScrollCycle.at("Background"),216,spriteSheet,screen,&SPRITE_FOREGROUND);
 }
 
 void Display::renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP)
@@ -117,5 +123,11 @@ void Display::renderGame(std::map <std::string,int> autoScrollCycle, int obstacl
     renderBackground(screen, spriteSheet, autoScrollCycle);
     renderObstacle(screen, spriteSheet, autoScrollCycle, obstacleHeightArray, obstacleNumber, OBSTACLE_GAP);
     renderForeground(screen, spriteSheet, autoScrollCycle);
-    SDL_UpdateRect(screen, 0,0,0,0);
+    
+}
+
+void Display::renderTime(SDL_Surface* timeMessage)
+{
+    applySurface(100,100, timeMessage, screen);
+    SDL_Flip(screen);
 }

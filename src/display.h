@@ -29,9 +29,10 @@ class Display
         SDL_Surface* loadImage( std::string filename, bool transparency );
         // void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
     public:
-        Display();
+        Display(SDL_Surface* screen);
         ~Display();
         void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP);
+        void renderTime(SDL_Surface* timeMessage);
 };
 
 #endif
