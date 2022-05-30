@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 
+#include "game.h"
+
 enum spriteName {Background, Title, ObstacleUp, ObstacleDown, Cloud1, Cloud2};
 
 class SpriteBlit
@@ -31,9 +33,9 @@ class Display
         SDL_Surface* loadImage( std::string filename, bool transparency );
         // void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
     public:
-        Display(SDL_Surface* screen, int OBSTACLE_GAP);
+        Display(SDL_Surface* screen);
         ~Display();
-        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int poussinSkinNumber, int poussinHeight, int poussinMovementFrame);
+        void renderGame(Game* game);
         void renderTime(SDL_Surface* timeMessage);
 };
 

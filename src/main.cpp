@@ -3,17 +3,15 @@
 #include <SDL/SDL_ttf.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_mixer.h>
-#include <SDL/SDL_framerate.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string>
 #include <map>
-#include <sstream>
 #include <chrono>
 
 // #include "menu.h"
-// #include "game.h"
+#include "game.h"
 #include "display.h"
 // #include "input.h"
 
@@ -22,6 +20,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     bool running = true;
+    int frameDuration = 33;
 
     SDL_Event event;
     
@@ -32,16 +31,11 @@ int main(int argc, char *argv[])
     SDL_Surface* screen = SDL_SetVideoMode(240, 240, 32,
                           SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
 
-    // image = load_image("res/spritesheet1.png");
-    // apply_surface(0,0,image,screen);
+    Mix_OpenAudio( 96000, MIX_DEFAULT_FORMAT, 1, 4096);
 
-    // SDL_UpdateRect(screen, 0,0,0,0);
+    Mix_Music* music = Mix_LoadMUS("res/music.ogg");
+    Mix_Chunk* hitSound = Mix_LoadWAV("res/bonk.wav");
 
-    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096);
-
-    Mix_Music *music = Mix_LoadMUS("res/music.ogg");
-
-    Mix_PlayMusic( music, -1 );
 
     TTF_Init();
 
@@ -51,62 +45,44 @@ int main(int argc, char *argv[])
 
     SDL_Surface* timeMessage = NULL;
 
-    Display display(screen, OBSTACLE_GAP);
+    Game game;
 
- 
-    bool hasGameStarted = false;
+    Display display(screen);
+
+    std::string scoreShow;
     
-
-    // auto stopTime = std::chrono::system_clock::now();
-
-    FPSmanager* fpsManager = new FPSmanager;
-
-    SDL_initFramerate(fpsManager);
-    SDL_setFramerate(fpsManager, 30);
-
-    
-
     auto currentTime = std::chrono::system_clock::now(), lastTime= currentTime;
 
     while ( running )
     {      
         lastTime = std::chrono::system_clock::now();
 
-        //execTimeShow.str(std::string());
-        // execTime = std::chrono::system_clock::now();
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,0,0,0));
-        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP, cloudHeightArray, cloudTypeArray, 2, poussinSkinNumber, poussinHeight, poussinMovementFrame);
-        if(hasGameStarted)
+        game.update();
+        if(game.musicCommand != 0)
         {
-            autoScrollCycle["Background"] += 3;
-            autoScrollCycle["Background"] = autoScrollCycle["Background"]%240;
-            autoScrollCycle["Obstacle"] += 3;
-            if (autoScrollCycle["Obstacle"] == 120)
+            switch (game.musicCommand)
             {
-                autoScrollCycle["Obstacle"] = 0;
-                obstacleHeightArray[0] = obstacleHeightArray[1];
-                obstacleHeightArray[1] = obstacleHeightArray[2];
-                obstacleHeightArray[2] = 40 + rand()%100;
-                obstaclePassed++;
+                case 1:
+                    Mix_PlayMusic( music, -1 );
+                    break;
+                case 2:
+                    Mix_PlayChannel(-1,hitSound,0);
+                    Mix_HaltMusic( );
+                    
+                    break;
+                case 3:
+                    Mix_HaltMusic( );
+                default:
+                    break;
             }
-            autoScrollCycle["Cloud"] += 1;
-            if (autoScrollCycle["Cloud"] == 240)
-            {
-                autoScrollCycle["Cloud"] = 0;
-                cloudHeightArray[0] = cloudHeightArray[1];
-                cloudHeightArray[1] = 130 + rand()%100;
-                cloudTypeArray[0] = cloudTypeArray[1];
-                cloudTypeArray[1] = 0 + rand()%2;
-            }
-            if(poussinMovementFrame < 6)
-                poussinHeight = poussinHeight +2*poussinMovementFrame-12;
-            else
-                poussinHeight = poussinHeight +(poussinMovementFrame-6)/2 ;
-            poussinMovementFrame++;
-            timeMessage = TTF_RenderText_Solid(font, std::to_string(poussinHeight).c_str(), textColor);
-            display.renderTime(timeMessage);
+            game.musicCommand = 0;
         }
-        SDL_Flip(screen);
+        display.renderGame(&game);
+
+        
+       
+       
         
         while( SDL_PollEvent(&event) )
         { 
@@ -115,46 +91,42 @@ int main(int argc, char *argv[])
                 running = false;
             }
 
-            else if(event.type == SDL_KEYUP)
+            else if(event.type == SDL_KEYDOWN)
             { 
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_a:
                     {
-                        hasGameStarted = true;
-                        poussinMovementFrame = 0;
+                        game.start();
+                        if(game.getState() == 1)
+                            game.action();
                         break;
                     }
                     case SDLK_b:
                     {
-                        hasGameStarted = false;
-                        autoScrollCycle.at("Background")=0;
-                        autoScrollCycle.at("Obstacle")=-120;
-                        autoScrollCycle.at("Cloud")=-80;
-                        poussinHeight = POUSSIN_BASE_HEIGHT;
-                        poussinMovementFrame = 0;
-                        obstaclePassed = 0;
+                        game.reset();
                         break;
                     }
                     case SDLK_x:
                     {
-           
-                       break;
+                        
+                        break;
                     }
                     case SDLK_y:
                     {
                      
-                       break;
+                        break;
                     }
                     case SDLK_m:
                     {
-                       poussinSkinNumber = (poussinSkinNumber + 1)%8;
-                       break;
+                        game.skinRoll();
+                        break;
                     }
                     case SDLK_n:
                     {
-                      
-                       break;
+                        if (frameDuration == 33) frameDuration = 12;
+                        else frameDuration = 33;
+                        break;
                     }
                     case SDLK_s:
                     {
@@ -166,6 +138,67 @@ int main(int argc, char *argv[])
                     {
                         break;
                     }
+                    case SDLK_u:
+                    {
+                        switch (game.cheatCode)
+                        {
+                            case 1:
+                                game.cheatCode++;
+                                break;
+                            case 2:
+                                game.cheatCode++;
+                                break;
+                            case 6:
+                                game.cheatCode++;
+                                break;
+                            default:
+                                game.cheatCode = 0;
+                                break;
+                        }
+                        break;
+                    }
+                    case SDLK_d:
+                    {
+                        switch (game.cheatCode)
+                        {
+                            case 0:
+                                game.cheatCode++;
+                                break;
+                            case 7:
+                                game.cheatCode++;
+                                Mix_PlayChannel(-1,hitSound,0);
+                                break;
+                            default:
+                                game.cheatCode = 0;
+                                break;
+                        }
+                        break;
+                    }
+                    case SDLK_l:
+                    {   
+                        switch (game.cheatCode)
+                        {
+                            case 0:
+                                game.cheatCode=5;
+                                break;
+                            case 5:
+                                game.cheatCode++;
+                                break;
+                            case 3:
+                                game.cheatCode++;
+                                Mix_PlayChannel(-1,hitSound,0);
+                                break;
+                            default:
+                                game.cheatCode = 0;
+                                break;
+                        }
+                        break;
+                    }
+                    case SDLK_r:
+                    {
+                        game.cheatCode = 0;
+                        break;
+                    }
                     default:
                     {
                         break;
@@ -175,18 +208,23 @@ int main(int argc, char *argv[])
         }
 
         // int time_passed = 33 - (currentTime - lastTime > 0)?(currentTime - lastTime):0;
-        // timeMessage = TTF_RenderText_Solid(font, std::to_string(time_passed).c_str(), textColor);
-        // display.renderTime(timeMessage);
                 currentTime = std::chrono::system_clock::now();
         int timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime).count(); 
-        SDL_Delay(33-timePassed);
+        scoreShow = std::to_string(game.getScore());
+        timeMessage = TTF_RenderText_Solid(font, scoreShow.c_str(), textColor);
+        display.renderTime(timeMessage);
+        SDL_FreeSurface(timeMessage);
+         SDL_Flip(screen);
+        if (timePassed < frameDuration)
+            SDL_Delay(frameDuration-timePassed);
 
         //SDL_framerateDelay(fpsManager);
 
         
     }
-    delete fpsManager;
     /// Deinit SDL
+    Mix_FreeChunk(hitSound);
+    Mix_FreeMusic(music);
     Mix_CloseAudio();
     SDL_Quit();
 

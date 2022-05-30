@@ -4,10 +4,11 @@ SpriteBlit::SpriteBlit(int XOffSet_temp, int YOffSet_temp, int XSize_temp, int Y
 
 const SpriteBlit SPRITE_BACKGROUND = SpriteBlit(0,240,240,456);
 const SpriteBlit SPRITE_FOREGROUND = SpriteBlit(0,456,240,24);
-const SpriteBlit SPRITE_OBSTACLEDOWN = SpriteBlit(0,0,64,128);
-const SpriteBlit SPRITE_OBSTACLEUP = SpriteBlit(64,0,64,128);
-const SpriteBlit SPRITE_CLOUD_A = SpriteBlit(64,128,64,32);
-const SpriteBlit SPRITE_CLOUD_B = SpriteBlit(64,160,64,32);
+const SpriteBlit SPRITE_TITLE = SpriteBlit(0,160,64,64);
+const SpriteBlit SPRITE_OBSTACLEDOWN = SpriteBlit(0,0,64,160);
+const SpriteBlit SPRITE_OBSTACLEUP = SpriteBlit(64,0,64,160);
+const SpriteBlit SPRITE_CLOUD_A = SpriteBlit(64,160,64,32);
+const SpriteBlit SPRITE_CLOUD_B = SpriteBlit(64,192,64,32);
 
 const int SKIN_AMOUNT = 8;
 
@@ -56,10 +57,10 @@ void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface
     applySurface(xPosition, yPosition, source, destination, &spriteBlit);
 }
 
-Display::Display(SDL_Surface* screen_temp, int OBSTACLE_GAP)
+Display::Display(SDL_Surface* screen_temp)
 {
     screen = screen_temp;
-    std::string spriteSheetFile = "res/spritesheet1.png";
+    std::string spriteSheetFile = "res/spritesheet.png";
     spriteSheet = loadImage(spriteSheetFile, true);
 
     //Preload Background/Foreground images.
@@ -110,54 +111,75 @@ SDL_Surface* Display::loadImage( std::string filename, bool transparency = false
     return optimizedImage;
 }
 
-void renderBackground(SDL_Surface* screen, SDL_Surface* spriteBackground, std::map <std::string,int> autoScrollCycle)
+void renderBackground(SDL_Surface* screen, SDL_Surface* spriteBackground, int autoScrollCycle)
 {
 
-    applySurface(-autoScrollCycle.at("Background"),0,spriteBackground,screen);
+    applySurface(-autoScrollCycle,0,spriteBackground,screen);
 }
 
-void renderCloud(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std::string,int> autoScrollCycle, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber)
+void renderCloud(SDL_Surface* screen, SDL_Surface* spriteSheet, int autoScrollCycle, int cloudHeightArray[], int cloudTypeArray[], const int CLOUD_NUMBER)
 {
     const SpriteBlit* SPRITE_CLOUD = NULL;
-    for(int i = 0; i < cloudNumber; i++)
+    for(int i = 0; i < CLOUD_NUMBER; i++)
     {
         if(cloudTypeArray[i] == 0)
             SPRITE_CLOUD = &SPRITE_CLOUD_A;
         else
             SPRITE_CLOUD = &SPRITE_CLOUD_B;
-        applySurface(240*i-autoScrollCycle.at("Cloud"), 240-cloudHeightArray[i], spriteSheet, screen, SPRITE_CLOUD);
+        applySurface(240*i-autoScrollCycle, 240-cloudHeightArray[i], spriteSheet, screen, SPRITE_CLOUD);
     }
 }
 
-void renderObstacle(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP)
+void renderObstacle(SDL_Surface* screen, SDL_Surface* spriteSheet, int autoScrollCycle, int obstacleHeightArray[], const int OBSTACLE_NUMBER, const int OBSTACLE_GAP)
 {
-    for(int i = 0; i < obstacleNumber; i++)
+    for(int i = 0; i < OBSTACLE_NUMBER; i++)
     {
-        applySurface(120*i-autoScrollCycle.at("Obstacle"), 240-obstacleHeightArray[i], spriteSheet, screen, &SPRITE_OBSTACLEUP);
-        applySurface(120*i-autoScrollCycle.at("Obstacle"), 120-obstacleHeightArray[i]-OBSTACLE_GAP, spriteSheet, screen, &SPRITE_OBSTACLEDOWN);
+        applySurface(120*i-autoScrollCycle, 240-obstacleHeightArray[i], spriteSheet, screen, &SPRITE_OBSTACLEUP);
+        applySurface(120*i-autoScrollCycle, 80-obstacleHeightArray[i]-OBSTACLE_GAP, spriteSheet, screen, &SPRITE_OBSTACLEDOWN);
+    }
+
+    if(autoScrollCycle <=-61)
+    {
+        applySurface(9-(120+autoScrollCycle),108,spriteSheet,screen,&SPRITE_OBSTACLEUP);
     }
 }
 
 void renderPoussin(SDL_Surface* screen, SDL_Surface* spriteSheet, int poussinHeight, int poussinMovementFrame, int poussinSkinNumber, std::map<int, SpriteBlit> spritePoussinMap)
 {
     if (poussinMovementFrame >=2 && poussinMovementFrame <=4)
-        applySurface(30,poussinHeight+32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2+1));
+        applySurface(30,(240-poussinHeight)-32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2+1));
     else
-        applySurface(30,poussinHeight+32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2));
+        applySurface(30,(240-poussinHeight)-32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2));
 }
 
-void renderForeground(SDL_Surface* screen, SDL_Surface* spriteForeground, std::map <std::string,int> autoScrollCycle)
+void renderForeground(SDL_Surface* screen, SDL_Surface* spriteForeground, int autoScrollCycle)
 {
-    applySurface(-autoScrollCycle.at("Background"),216,spriteForeground,screen);
+    applySurface(-autoScrollCycle,216,spriteForeground,screen);
 }
 
-void Display::renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int poussinSkinNumber, int poussinHeight, int poussinMovementFrame)
+void renderTitleScreen(SDL_Surface* screen, SDL_Surface* spriteSheet)
+{
+    applySurface(88,88,spriteSheet,screen,&SPRITE_TITLE);
+}
+
+void Display::renderGame(Game* game)
 {   
-    renderBackground(screen, spriteGeneralMap.at("Background"), autoScrollCycle);
-    renderCloud(screen, spriteSheet, autoScrollCycle, cloudHeightArray, cloudTypeArray, cloudNumber);
-    renderObstacle(screen, spriteSheet, autoScrollCycle, obstacleHeightArray, obstacleNumber, OBSTACLE_GAP);
-    renderPoussin(screen, spriteSheet, poussinHeight, poussinMovementFrame, poussinSkinNumber, spritePoussinMap);
-    renderForeground(screen, spriteGeneralMap.at("Foreground"), autoScrollCycle);
+    renderBackground(screen, spriteGeneralMap.at("Background"), game->backgroundAutoScrollCycle);
+    renderCloud(screen, spriteSheet, game->cloud.autoScrollCycle, game->cloud.heightArray, game->cloud.typeArray, CLOUD_NUMBER);
+    renderObstacle(screen, spriteSheet, game->obstacle.autoScrollCycle, game->obstacle.heightArray, OBSTACLE_NUMBER, OBSTACLE_GAP);
+    renderPoussin(screen, spriteSheet, game->poussin.height, game->poussin.movementFrame, game->poussin.skinNumber, spritePoussinMap);
+    renderForeground(screen, spriteGeneralMap.at("Foreground"), game->backgroundAutoScrollCycle);
+
+    switch (game->getState())
+    {
+        case 0:
+            renderTitleScreen(screen, spriteSheet);
+            break;
+        case 1:
+            break;
+        default:
+            break;
+    }
 }
 
 void Display::renderTime(SDL_Surface* timeMessage)

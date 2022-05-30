@@ -1,11 +1,20 @@
 #include "game.h"
 
-const int POUSSIN_BASE_HEIGHT = 50;
-const int OBSTACLE_NUMBER = 3;
+const int BACKGROUND_SPEED = 3;
+
+const int POUSSIN_BASE_HEIGHT = 130;
+const int POUSSIN_JUMP = 0;
+const int POUSSIN_SPEED = 0;
+
 const int OBSTACLE_BASE_CYCLE = -120;
-const int OBSTACLE_GAP = 90;
-const int CLOUD_NUMBER = 2;
-const int CLOUD_BASE_CYCLE = -80;
+const int OBSTACLE_BASE_HEIGHT = 88;
+const int OBSTACLE_SPEED = 3;
+
+const int CLOUD_BASE_CYCLE = -40;
+const int CLOUD_SPEED = 1;
+
+const int SKIN_AMOUNT = 8;
+
 
 int maxScoreKeyGen(int max_score)
 {
@@ -14,7 +23,7 @@ int maxScoreKeyGen(int max_score)
         max_score = max_score * i+1 * 7;
         max_score = max_score - i;
         max_score = max_score/2;
-        max_score = max_score%10000
+        max_score = max_score%10000;
     }
 
     return max_score;
@@ -22,205 +31,275 @@ int maxScoreKeyGen(int max_score)
 
 
 
+Poussin::Poussin()
+{
+    skinNumber = 0;
+    movementFrame = 0;
+    height = POUSSIN_BASE_HEIGHT;
+}
 
+int obstacleHeightRandom()
+{
+    return 35 + rand()%125;
+}
+
+Obstacle::Obstacle()
+{
+    autoScrollCycle = OBSTACLE_BASE_CYCLE;
+    heightArray[0] = OBSTACLE_BASE_HEIGHT;
+    heightArray[1] = obstacleHeightRandom();
+    heightArray[2] = obstacleHeightRandom();
+}
+
+Cloud::Cloud()
+{
+    autoScrollCycle = CLOUD_BASE_CYCLE;
+    heightArray[0] = 130 + rand()%100;
+    heightArray[1] = 130 + rand()%100;
+    typeArray[0] = 0 + rand()%2;
+    typeArray[1] = 0 + rand()%2;
+}
 
 Game::Game()
 {
-    game_state = 0;
+    gameState = 0;
     score = 0;
     
-    std::ifstream saveFile("poussinvolant.save")
+    std::ifstream saveFile("poussinvolant.save");
 
-    if(save_file)
+    if(saveFile)
     {
         int key;
-        save_file>>maxScore>>key;
+        saveFile>>maxScore>>key;
         if(maxScoreKeyGen(maxScore) != key)
         {
             maxScore = 0;
         }
     }
     else
-        max_score = 0;
-    
-    autoScrollCycle.insert(std::pair<std::string, int>("Background",0));
-    autoScrollCycle.insert(std::pair<std::string, int>("Obstacle",OBSTACLE_BASE_CYCLE));
-    autoScrollCycle.insert(std::pair<std::string, int>("Cloud",CLOUD_BASE_CYCLE));
-    
-    obstacleHeightArray[3] = {100, 80, 120};
-    cloudHeightArray[2] = {180,150};
-    cloudTypeArray[2] = {0,1};
-    
-    poussinSkinNumber = 0;
-    poussinMovementFrame = 0;
-    poussinHeight = POUSSIN_BASE_HEIGHT;
+        maxScore = 0;
+
+    poussin = Poussin();
+    obstacle = Obstacle();
+    cloud = Cloud();
+    backgroundAutoScrollCycle = 0;
+
+    musicCommand = 0;
+
+    cheatCode = 0;
+    debugInvincibility = false;
+    debugAutoplay = false;
+
 }
+
+void Game::start()
+{
+    if (gameState == 0)
+    {
+        gameState = 1;
+        musicCommand = 1;
+    }
+    else if (gameState == 2 && poussin.height < -10)
+    {
+        reset();
+    }
+}
+
+
+
+bool isHeightValid(int height1, int height2, int chanceHardObstacle, int score)
+{   
+    return  (height2 <= height1 - 90)
+            || (height2 >= height1 + 90)
+            ||((height2<=height1+40)
+            && (height2>=height1-40)
+            && (chanceHardObstacle <= 90) 
+            && (chanceHardObstacle <= score));
+}
+
+bool hasTouchedObstacle(int poussinHeight, int obstaclePosition, int obstacleHeight)
+{
+    if (poussinHeight<20)
+        return true;
+    if (obstaclePosition<-15||obstaclePosition>45)
+        return false;
+
+    const int bottomObstacle = obstacleHeight, topObstacle = obstacleHeight + OBSTACLE_GAP;
+    const int leftObstacle = obstaclePosition+15, rightObstacle = obstaclePosition+49;
+    int bottomPoussin = poussinHeight, topPoussin = poussinHeight+32;
+
+    if (rightObstacle<=38)
+    {
+        topPoussin -=16;
+        bottomPoussin +=8;
+    }
+    else if (rightObstacle <=44)
+    {
+        topPoussin -=16;
+        bottomPoussin +=4;
+    }
+    else if (rightObstacle <=47)
+    {
+        topPoussin -=7;
+        bottomPoussin +=4;
+    }
+    else if (rightObstacle <=51)
+    {
+        topPoussin -=4;
+        bottomPoussin +=4;
+    }
+    else if (leftObstacle <=55)
+    {
+        topPoussin -=4;
+        bottomPoussin +=9;
+    }
+    else if (leftObstacle <=58)
+    {
+        topPoussin -=7;
+        bottomPoussin +=17;
+    }
+    else if (leftObstacle <=60)
+    {
+        topPoussin -=11;
+        bottomPoussin +=17;
+    }
+
+    return topObstacle < topPoussin || bottomObstacle > bottomPoussin;
+}
+
+bool shouldJump(int poussinHeight, int obstaclePosition, int obstacleHeight[])
+{
+    int frontHeight;
+    if (obstaclePosition > -15)
+        frontHeight = obstacleHeight[0];
+    else frontHeight = obstacleHeight[1];
+
+    return poussinHeight <= frontHeight;
+}
+
 
 int Game::update()
 {
-    bool obstacle_passed = false;
-    int obstacle_yposition = 0;
-    character.update();
-
-    for(int i = 0; i<obstacles.size(); i++)
+    if (cheatCode == 4)
     {
-        obstacles[i].update();
-        if (obstacle_passed)
-            continue;
-        if obstacle_in_range(obstacles[i].getElementXPosition)
-        {
-            obstacle_yposition = obstacles[i].getElementYPosition;
-        }
+        debugInvincibility = !debugInvincibility;
+        cheatCode = 0;
+    }
+    if (cheatCode == 8)
+    {
+        debugAutoplay = !debugAutoplay;
+        cheatCode = 0;
+    }
+    switch(gameState) {
+        case 0: //Title Screen
+            break;
+        case 1: //Play
+            backgroundAutoScrollCycle += BACKGROUND_SPEED;
+            backgroundAutoScrollCycle = backgroundAutoScrollCycle%240;
+
+            obstacle.autoScrollCycle += OBSTACLE_SPEED;
+            if (obstacle.autoScrollCycle >= 60)
+            {
+                obstacle.autoScrollCycle = -60;
+                obstacle.heightArray[0] = obstacle.heightArray[1];
+                obstacle.heightArray[1] = obstacle.heightArray[2];
+                obstacle.heightArray[2] =  obstacleHeightRandom();
+                int chanceHardObstacle = rand()%100;
+                while (isHeightValid(obstacle.heightArray[1],obstacle.heightArray[2], chanceHardObstacle, score))
+                    obstacle.heightArray[2] = obstacleHeightRandom();
+            }
+            else if(obstacle.autoScrollCycle == 0)
+                score++;
+            
+            
+            cloud.autoScrollCycle += 1;
+            if (cloud.autoScrollCycle == 240)
+            {
+                cloud.autoScrollCycle = 0;
+                cloud.heightArray[0] = cloud.heightArray[1];
+                cloud.heightArray[1] = 130 + rand()%100;
+                cloud.typeArray[0] = cloud.typeArray[1];
+                cloud.typeArray[1] = 0 + rand()%2;
+            }
+
+            if(poussin.movementFrame < 6)
+                poussin.height = poussin.height -2*poussin.movementFrame+12;
+            else
+                poussin.height = poussin.height -(poussin.movementFrame-6)/2 ;
+            poussin.movementFrame++;
+
+            if(debugAutoplay && shouldJump(poussin.height, -obstacle.autoScrollCycle, obstacle.heightArray))
+            {
+                poussin.movementFrame = 0;
+            }
+
+            if(!debugInvincibility && hasTouchedObstacle(poussin.height, -obstacle.autoScrollCycle, obstacle.heightArray[0]))
+            {   
+                musicCommand = 2;
+                poussin.movementFrame = 0;
+                gameState = 2;
+            }
+
+            break;
+        
+        case 2: //GameOver
+            
+            if (poussin.height > -10)
+            {
+                poussin.height = poussin.height -2*poussin.movementFrame+6;
+                poussin.movementFrame++;
+            }
+            break;
+
+        default:
+            break;
     }
 
-    for(int i = 0; i<clouds.size(); i++)
-    {
-        clouds[i].update();
-    }
+    return gameState;
+}
 
-    
+void Game::action()
+{
+    poussin.movementFrame = 0;
+}
 
-    return game_state;
+void Game::skinRoll()
+{
+    poussin.skinNumber = (poussin.skinNumber + 1)%SKIN_AMOUNT;
+}
+
+void Game::reset()
+{
+    gameState = 0;
+    backgroundAutoScrollCycle=0;
+    obstacle.autoScrollCycle=-120;
+    obstacle.heightArray[0]=OBSTACLE_BASE_HEIGHT;
+    cloud.autoScrollCycle=-80;
+    poussin.height = POUSSIN_BASE_HEIGHT;
+    poussin.movementFrame = 0;
+    score = 0;
+    musicCommand = 3;
 }
 
 void Game::save()
 {
-    std::ofstream save_file("poussinvolant.save")
+    std::ofstream saveFile("poussinvolant.save");
 
-    if(save_file)
-        save_file<<max_score<<" "<<max_scoreKeyGen(max_score);
+    if(saveFile)
+        saveFile<<maxScore<<" "<<maxScoreKeyGen(maxScore);
 }
 
-void Game::changeState(int state)
+int Game::getState()
 {
-    game_state = state;
+    return gameState;
 }
 
-vector<int> Game::getElementXPosition(ElementType element)
+int Game::getScore()
 {
-    vector<int> XPosition;
-    switch(element)
-    {
-        case Character:
-            XPosition.push_back(character.getXPosition);
-            break;
-        case Obstacle:
-            for(int i = 0; i < obstacles.size(); i++)
-                XPosition.push_back(obstacles[i].getXPosition);
-            break;
-        case Cloud:
-            for(int i = 0; i < clouds.size(); i++)
-                XPosition.push_back(clouds[i].getXPosition);
-            break;
-        default:
-            break;
-    }
-    return XPosition;
+    return score;
 }
 
-vector<int> Game::getElementYPosition(ElementType element)
+int Game::getMaxScore()
 {
-    vector<int> YPosition;
-    switch(element)
-    {
-        case Character:
-            YPosition.push_back(character.getYPosition);
-            break;
-        case Obstacle:
-            for(int i = 0; i < obstacles.size(); i++)
-                YPosition.push_back(obstacles[i].getYPosition);
-            break;
-        case Cloud:
-            for(int i = 0; i < clouds.size(); i++)
-                YPosition.push_back(clouds[i].getYPosition);
-            break;
-        default:
-            break;
-    }
-    return YPosition;
-}
-
-vector<int> Game::getElementSkin(ElementType element)
-{
-    vector<int> Skin;
-    switch(element)
-    {
-        case Character:
-            Skin.push_back(character.getSkin);
-            break;
-        case Obstacle:
-            for(int i = 0; i < obstacles.size(); i++)
-                Skin.push_back(obstacles[i].getSkin);
-            break;
-        case Cloud:
-            for(int i = 0; i < clouds.size(); i++)
-                Skin.push_back(clouds[i].getSkin);
-            break;
-        default:
-            break;
-    }
-    return Skin;
-}
-
-int Element::getXPosition()
-{
-    return xposition;
-}
-
-int Element::getYPosition()
-{
-    return yposition;
-}
-
-int Element::getSkin()
-{
-    return skin;
-}
-
-Character::Character()
-{
-    yposition = 120;
-    xposition = 20;
-    skin = 1;
-    movement_frame = 0;
-}
-
-void Character::update()
-{
-    if movement_frame < 60 
-        yposition = yposition + jump - movement_frame;
-        movement_frame++;
-    else
-        yposition = yposition + jump - 60;
-}
-
-void Character::reset()
-{
-    yposition = 120;
-    xposition = 20;
-    movement_frame = 1;
-}
-
-Obstacle::Obstacle()
-{
-    xposition = 240;
-    yposition = 264 - rand()%120;
-    skin = 11;
-}
-
-void Obstacle::update()
-{
-    xposition = xposition - 1;
-}
-
-Cloud::Cloud()
-{
-    xposition = 240;
-    yposition = rand()%208;
-    skin = 9 + rand()%2;
-}
-
-void Cloud::update()
-{
-    xposition = xposition - 1;
+    return maxScore;
 }
