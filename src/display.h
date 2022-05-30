@@ -33,7 +33,7 @@ class Display
     public:
         Display(SDL_Surface* screen, int OBSTACLE_GAP);
         ~Display();
-        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int skinNumber);
+        void renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int poussinSkinNumber, int poussinHeight, int poussinMovementFrame);
         void renderTime(SDL_Surface* timeMessage);
 };
 

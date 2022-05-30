@@ -138,24 +138,30 @@ void renderObstacle(SDL_Surface* screen, SDL_Surface* spriteSheet, std::map <std
     }
 }
 
+void renderPoussin(SDL_Surface* screen, SDL_Surface* spriteSheet, int poussinHeight, int poussinMovementFrame, int poussinSkinNumber, std::map<int, SpriteBlit> spritePoussinMap)
+{
+    if (poussinMovementFrame >=2 && poussinMovementFrame <=4)
+        applySurface(30,poussinHeight+32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2+1));
+    else
+        applySurface(30,poussinHeight+32,spriteSheet,screen, &spritePoussinMap.at(poussinSkinNumber*2));
+}
+
 void renderForeground(SDL_Surface* screen, SDL_Surface* spriteForeground, std::map <std::string,int> autoScrollCycle)
 {
     applySurface(-autoScrollCycle.at("Background"),216,spriteForeground,screen);
 }
 
-void Display::renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int skinNumber)
+void Display::renderGame(std::map <std::string,int> autoScrollCycle, int obstacleHeightArray[], int obstacleNumber, const int OBSTACLE_GAP, int cloudHeightArray[], int cloudTypeArray[], int cloudNumber, int poussinSkinNumber, int poussinHeight, int poussinMovementFrame)
 {   
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,0,0,0));
     renderBackground(screen, spriteGeneralMap.at("Background"), autoScrollCycle);
     renderCloud(screen, spriteSheet, autoScrollCycle, cloudHeightArray, cloudTypeArray, cloudNumber);
     renderObstacle(screen, spriteSheet, autoScrollCycle, obstacleHeightArray, obstacleNumber, OBSTACLE_GAP);
+    renderPoussin(screen, spriteSheet, poussinHeight, poussinMovementFrame, poussinSkinNumber, spritePoussinMap);
     renderForeground(screen, spriteGeneralMap.at("Foreground"), autoScrollCycle);
-    applySurface(100,100,spriteSheet,screen,&spritePoussinMap.at(skinNumber));
-    SDL_Flip(screen);
 }
 
 void Display::renderTime(SDL_Surface* timeMessage)
 {
-    applySurface(20,100, timeMessage, screen);
-    SDL_Flip(screen);
+    applySurface(10,10, timeMessage, screen);
+    
 }

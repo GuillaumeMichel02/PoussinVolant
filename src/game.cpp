@@ -1,7 +1,13 @@
 #include "game.h"
 
+const int POUSSIN_BASE_HEIGHT = 50;
+const int OBSTACLE_NUMBER = 3;
+const int OBSTACLE_BASE_CYCLE = -120;
+const int OBSTACLE_GAP = 90;
+const int CLOUD_NUMBER = 2;
+const int CLOUD_BASE_CYCLE = -80;
 
-int max_scoreKeyGen(int max_score)
+int maxScoreKeyGen(int max_score)
 {
     for(int i = 1; i < 10; i++)
     {
@@ -14,30 +20,40 @@ int max_scoreKeyGen(int max_score)
     return max_score;
 }
 
-bool obstacle_in_range(int xposition)
-{
 
-}
+
+
 
 Game::Game()
 {
     game_state = 0;
     score = 0;
-    movement_frame = 0;
     
-    std::ifstream save_file("poussinvolant.save")
+    std::ifstream saveFile("poussinvolant.save")
 
     if(save_file)
+    {
         int key;
-        save_file>>max_score>>key;
-        if(max_scoreKeyGen(max_score) != key)
+        save_file>>maxScore>>key;
+        if(maxScoreKeyGen(maxScore) != key)
         {
-            max_score = 0;
+            maxScore = 0;
         }
+    }
     else
         max_score = 0;
     
-    character = Character();
+    autoScrollCycle.insert(std::pair<std::string, int>("Background",0));
+    autoScrollCycle.insert(std::pair<std::string, int>("Obstacle",OBSTACLE_BASE_CYCLE));
+    autoScrollCycle.insert(std::pair<std::string, int>("Cloud",CLOUD_BASE_CYCLE));
+    
+    obstacleHeightArray[3] = {100, 80, 120};
+    cloudHeightArray[2] = {180,150};
+    cloudTypeArray[2] = {0,1};
+    
+    poussinSkinNumber = 0;
+    poussinMovementFrame = 0;
+    poussinHeight = POUSSIN_BASE_HEIGHT;
 }
 
 int Game::update()

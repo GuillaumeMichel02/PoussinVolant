@@ -17,10 +17,6 @@
 #include "display.h"
 // #include "input.h"
 
-const int FRAMES_PER_SECOND = 30;
-const int OBSTACLE_GAP = 80;
-
-
 int main(int argc, char *argv[])
 {   
     srand(time(NULL));
@@ -51,23 +47,16 @@ int main(int argc, char *argv[])
 
     TTF_Font *font = TTF_OpenFont("res/lazy.ttf", 50);
 
-    SDL_Color textColor = {255,255,255};
+    SDL_Color textColor = {0,0,0};
 
-    // SDL_Surface* timeMessage = NULL;
+    SDL_Surface* timeMessage = NULL;
 
     Display display(screen, OBSTACLE_GAP);
 
-    std::map <std::string, int> autoScrollCycle;
-    autoScrollCycle.insert(std::pair<std::string, int>("Background",0));
-    autoScrollCycle.insert(std::pair<std::string, int>("Obstacle",-120));
-    autoScrollCycle.insert(std::pair<std::string, int>("Cloud",-80));
+ 
+    bool hasGameStarted = false;
+    
 
-    int obstacleHeightArray[3] = {100, 80, 120};
-    int cloudHeightArray[4] = {180,150};
-    int cloudTypeArray[4] = {0,1};
-    // auto startTime = std::chrono::system_clock::now();
-    int obstaclePassed = 0;
-    // auto execTime = std::chrono::system_clock::now();
     // auto stopTime = std::chrono::system_clock::now();
 
     FPSmanager* fpsManager = new FPSmanager;
@@ -75,47 +64,49 @@ int main(int argc, char *argv[])
     SDL_initFramerate(fpsManager);
     SDL_setFramerate(fpsManager, 30);
 
-    int skinNumber = 0;
+    
+
+    auto currentTime = std::chrono::system_clock::now(), lastTime= currentTime;
 
     while ( running )
     {      
+        lastTime = std::chrono::system_clock::now();
 
         //execTimeShow.str(std::string());
         // execTime = std::chrono::system_clock::now();
-        autoScrollCycle["Background"] += 3;
-        autoScrollCycle["Background"] = autoScrollCycle["Background"]%240;
-        autoScrollCycle["Obstacle"] += 3;
-        if (autoScrollCycle["Obstacle"] == 120)
+        SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,0,0,0));
+        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP, cloudHeightArray, cloudTypeArray, 2, poussinSkinNumber, poussinHeight, poussinMovementFrame);
+        if(hasGameStarted)
         {
-            autoScrollCycle["Obstacle"] = 0;
-            obstacleHeightArray[0] = obstacleHeightArray[1];
-            obstacleHeightArray[1] = obstacleHeightArray[2];
-            obstacleHeightArray[2] = 50 + rand()%100;
-            obstaclePassed++;
+            autoScrollCycle["Background"] += 3;
+            autoScrollCycle["Background"] = autoScrollCycle["Background"]%240;
+            autoScrollCycle["Obstacle"] += 3;
+            if (autoScrollCycle["Obstacle"] == 120)
+            {
+                autoScrollCycle["Obstacle"] = 0;
+                obstacleHeightArray[0] = obstacleHeightArray[1];
+                obstacleHeightArray[1] = obstacleHeightArray[2];
+                obstacleHeightArray[2] = 40 + rand()%100;
+                obstaclePassed++;
+            }
+            autoScrollCycle["Cloud"] += 1;
+            if (autoScrollCycle["Cloud"] == 240)
+            {
+                autoScrollCycle["Cloud"] = 0;
+                cloudHeightArray[0] = cloudHeightArray[1];
+                cloudHeightArray[1] = 130 + rand()%100;
+                cloudTypeArray[0] = cloudTypeArray[1];
+                cloudTypeArray[1] = 0 + rand()%2;
+            }
+            if(poussinMovementFrame < 6)
+                poussinHeight = poussinHeight +2*poussinMovementFrame-12;
+            else
+                poussinHeight = poussinHeight +(poussinMovementFrame-6)/2 ;
+            poussinMovementFrame++;
+            timeMessage = TTF_RenderText_Solid(font, std::to_string(poussinHeight).c_str(), textColor);
+            display.renderTime(timeMessage);
         }
-        autoScrollCycle["Cloud"] += 1;
-        if (autoScrollCycle["Cloud"] == 240)
-        {
-            autoScrollCycle["Cloud"] = 0;
-            cloudHeightArray[0] = cloudHeightArray[1];
-            cloudHeightArray[1] = 130 + rand()%100;
-            cloudTypeArray[0] = cloudTypeArray[1];
-            cloudTypeArray[1] = 0 + rand()%2;
-        }
-        display.renderGame(autoScrollCycle, obstacleHeightArray, 3, OBSTACLE_GAP, cloudHeightArray, cloudTypeArray, 2, skinNumber);
-
-        // stopTime = std::chrono::system_clock::now();
-        // execTimeShow << execTime << " / " << (SDL_GetTicks() - startTime)/1000 << " / "<<obstaclePassed;
-
-    
-
-        // timeMessage = TTF_RenderText_Solid(font, std::to_string(frameDuration).c_str(), textColor);
-        // display.renderTime(timeMessage);
-
-        // SDL_Delay(31);
-
-        
-        
+        SDL_Flip(screen);
         
         while( SDL_PollEvent(&event) )
         { 
@@ -130,12 +121,19 @@ int main(int argc, char *argv[])
                 {
                     case SDLK_a:
                     {
-                        skinNumber = (skinNumber + 1)%16;
+                        hasGameStarted = true;
+                        poussinMovementFrame = 0;
                         break;
                     }
                     case SDLK_b:
                     {
-                      
+                        hasGameStarted = false;
+                        autoScrollCycle.at("Background")=0;
+                        autoScrollCycle.at("Obstacle")=-120;
+                        autoScrollCycle.at("Cloud")=-80;
+                        poussinHeight = POUSSIN_BASE_HEIGHT;
+                        poussinMovementFrame = 0;
+                        obstaclePassed = 0;
                         break;
                     }
                     case SDLK_x:
@@ -150,7 +148,7 @@ int main(int argc, char *argv[])
                     }
                     case SDLK_m:
                     {
-                     
+                       poussinSkinNumber = (poussinSkinNumber + 1)%8;
                        break;
                     }
                     case SDLK_n:
@@ -175,7 +173,17 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        SDL_framerateDelay(fpsManager);
+
+        // int time_passed = 33 - (currentTime - lastTime > 0)?(currentTime - lastTime):0;
+        // timeMessage = TTF_RenderText_Solid(font, std::to_string(time_passed).c_str(), textColor);
+        // display.renderTime(timeMessage);
+                currentTime = std::chrono::system_clock::now();
+        int timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime).count(); 
+        SDL_Delay(33-timePassed);
+
+        //SDL_framerateDelay(fpsManager);
+
+        
     }
     delete fpsManager;
     /// Deinit SDL

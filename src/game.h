@@ -6,29 +6,27 @@
 #include <fstream>
 #include <random>
 
-const int SPEED_VALUE = 30;
-const int JUMP_VALUE = 30;
-const int OBSTACLE_NUMBER = 5;
-
-int maxScoreKeyGen(int max_score);
-
-bool isObstacleInRange(int xposition);
-
-bool isCharacterHit(int character_yposition, int obstacle_yposition);
 
 class Game
 {
     private:
-        int game_state;
+        int gameState;
         int score;
-        int max_score;
+        int maxScore;
+        std::map <std::string, int> autoScrollCycle;
+        int obstacleHeightArray[3];
+        int cloudHeightArray[2];
+        int cloudTypeArray[2];
+        int poussinSkinNumber;
+        int poussinMovementFrame;
+        int poussinHeight;
     public:
         Character character;
         int obstacleHeight[OBSTACLE_NUMBER];
         int movement_frame;
 
         Game();
-        int update();
+        int updateFrame();
         void save();
 
         void getState();
