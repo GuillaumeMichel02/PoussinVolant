@@ -1,4 +1,49 @@
-#include "sprite_manager.h"
+#include "render.h"
+
+void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination)
+{
+    const SpriteBlit spriteBlit = SpriteBlit(0,0,source->w,source->h);
+    applySurface(xPosition, yPosition, source, destination, &spriteBlit);
+}
+
+void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit)
+{
+    if (xPosition >= destination->w || yPosition >= destination->h) return;
+
+    if (xPosition + spriteBlit->XSize < 0 || yPosition + spriteBlit->YSize < 0) return;
+
+    //Make a temporary rectangle to hold the offsets
+    SDL_Rect offset;
+    SDL_Rect crop;
+    
+    //Give the offsets to the rectangle
+    offset.x = xPosition;
+    offset.y = yPosition;
+
+    //Crop according to the spriteBlit
+    crop.x = spriteBlit->XOffSet;
+    crop.y = spriteBlit->YOffSet;
+    crop.w = spriteBlit->XSize;
+    crop.h = spriteBlit->YSize;
+
+    if(xPosition<0)
+    {
+        crop.x -= xPosition;
+        crop.w += xPosition;
+        offset.x = 0;
+    }
+
+    if(yPosition<0)
+    {
+        crop.y -= yPosition;
+        crop.h += yPosition;
+        offset.y = 0;
+    }
+
+    SDL_BlitSurface( source, &crop, destination, &offset);
+
+    
+}
 
 void renderBackground(SDL_Surface* screen, SDL_Surface* spriteBackground, int autoScrollCycle)
 {

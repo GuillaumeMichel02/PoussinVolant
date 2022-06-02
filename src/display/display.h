@@ -3,38 +3,13 @@
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
-#include <SDL/SDL_ttf.h>
 #include <map>
 #include <string>
 
-#include "game.h"
-
-enum spriteName {Background, Title, ObstacleUp, ObstacleDown, Cloud1, Cloud2};
-
-class SpriteBlit
-{
-    public:
-        int XOffSet;
-        int YOffSet;
-        int XSize;
-        int YSize;
-        SpriteBlit(int XOffSet_temp, int YOffSet_temp, int XSize_temp, int YSize_temp);
-};
-
-class TextManager
-{
-    public:
-        TTF_Font *fontBig;
-        TTF_Font *fontSmall;
-
-        SDL_Color frontColor;
-        SDL_Color backColor;
-
-        SDL_Surface* frontMessage;
-        SDL_Surface* backMessage;
-
-        TextManager(TTF_Font* fontBig_temp, TTF_Font* fontSmall_temp);
-};
+#include "../game/game.h"
+#include "render.h"
+#include "sprite_blit.h"
+#include "text_manager.h"
 
 class Display
 {

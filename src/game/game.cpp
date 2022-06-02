@@ -1,6 +1,7 @@
 #include "game.h"
 
 const int BACKGROUND_SPEED = 3;
+const int BACKGROUND_BASE_CYCLE = 0;
 
 const int POUSSIN_BASE_HEIGHT = 130;
 const int POUSSIN_JUMP = 0;
@@ -60,6 +61,11 @@ Cloud::Cloud()
     typeArray[1] = 0 + rand()%2;
 }
 
+Background::Background()
+{
+    autoScrollCycle = BACKGROUND_BASE_CYCLE;
+}
+
 Game::Game()
 {
     gameState = 0;
@@ -82,7 +88,7 @@ Game::Game()
     poussin = Poussin();
     obstacle = Obstacle();
     cloud = Cloud();
-    backgroundAutoScrollCycle = 0;
+    background = Background();
 
     musicCommand = 0;
 
@@ -199,8 +205,8 @@ int Game::update()
         case 0: //Title Screen
             break;
         case 1: //Play
-            backgroundAutoScrollCycle += BACKGROUND_SPEED;
-            backgroundAutoScrollCycle = backgroundAutoScrollCycle%240;
+            background.autoScrollCycle += BACKGROUND_SPEED;
+            background.autoScrollCycle = background.autoScrollCycle%240;
 
             obstacle.autoScrollCycle += OBSTACLE_SPEED;
             if (obstacle.autoScrollCycle >= 60)
@@ -281,7 +287,7 @@ void Game::skinRoll()
 void Game::reset()
 {
     gameState = 0;
-    backgroundAutoScrollCycle=0;
+    background.autoScrollCycle=0;
     obstacle.autoScrollCycle=-120;
     obstacle.heightArray[0]=OBSTACLE_BASE_HEIGHT;
     cloud.autoScrollCycle=-80;

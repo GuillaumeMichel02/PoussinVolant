@@ -11,8 +11,8 @@
 #include <chrono>
 
 // #include "menu.h"
-#include "game.h"
-#include "display.h"
+#include "game/game.h"
+#include "display/display.h"
 // #include "input.h"
 
 int main(int argc, char *argv[])

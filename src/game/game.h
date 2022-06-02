@@ -40,6 +40,13 @@ class Cloud
         Cloud();
 };
 
+class Background
+{
+    public:
+        int autoScrollCycle;
+        Background();
+};
+
 class Game
 {
     private:
@@ -54,7 +61,7 @@ class Game
         Poussin poussin;
         Obstacle obstacle;
         Cloud cloud;
-        int backgroundAutoScrollCycle;
+        Background background;
         int musicCommand;
         int cheatCode;
         bool newMaxScore;
