@@ -1,6 +1,6 @@
 #include "render.h"
 
-void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit = SpriteBlit(0,0,source->w,source->h))
+void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit)
 {
     if (xPosition >= destination->w || yPosition >= destination->h) return;
 

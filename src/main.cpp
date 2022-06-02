@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
                     case SDLK_b:
                     {
                         game.reset();
+                        game.resetSaveCounter++;
                         break;
                     }
                     case SDLK_x:
@@ -129,12 +130,16 @@ int main(int argc, char *argv[])
                     }
                     case SDLK_s:
                     {
-                        running = false;
-                        Mix_HaltMusic( );
                         break;
                     }
                     case SDLK_k:
                     {
+                        break;
+                    }
+                    case SDLK_q:
+                    {
+                        running = false;
+                        Mix_HaltMusic( );
                         break;
                     }
                     case SDLK_u:

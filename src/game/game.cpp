@@ -16,22 +16,6 @@ const int CLOUD_SPEED = 1;
 
 const int SKIN_AMOUNT = 8;
 
-
-int maxScoreKeyGen(int max_score)
-{
-    for(int i = 1; i < 10; i++)
-    {
-        max_score = max_score * i+1 * 7;
-        max_score = max_score - i;
-        max_score = max_score/2;
-        max_score = max_score%10000;
-    }
-
-    return max_score;
-}
-
-
-
 Poussin::Poussin()
 {
     skinNumber = 0;
@@ -68,27 +52,32 @@ Background::Background()
 
 Game::Game()
 {
-    gameState = 0;
-    score = 0;
-    
-    std::ifstream saveFile("poussinvolant.save");
-
-    if(saveFile)
-    {
-        int key;
-        saveFile>>maxScore>>key;
-        if(maxScoreKeyGen(maxScore) != key)
-        {
-            maxScore = 0;
-        }
-    }
-    else
-        maxScore = 0;
-
     poussin = Poussin();
     obstacle = Obstacle();
     cloud = Cloud();
     background = Background();
+
+    gameState = 0;
+    score = 0;
+    newMaxScore = false;
+    resetSaveCounter = 0;
+
+    std::ifstream saveFile;
+    saveFile.open("poussinvolant.save");
+    if(!saveFile)
+        saveFile.open("/mnt/Native games/poussinvolant.save");
+
+    if(saveFile)
+    {
+        int saveScore, skin;
+        saveFile>>saveScore>>skin;
+        maxScore = saveScore;
+        poussin.skinNumber = skin;
+    }
+    else
+        maxScore = 0;
+
+    saveFile.close();
 
     musicCommand = 0;
 
@@ -96,7 +85,6 @@ Game::Game()
     debugInvincibility = false;
     debugAutoplay = false;
     debugMaxScore = false;
-    newMaxScore = false;
 
 }
 
@@ -107,6 +95,8 @@ void Game::start()
         gameState = 1;
         musicCommand = 1;
         newMaxScore = false;
+        resetSaveCounter = 0;
+        save();
     }
     else if (gameState == 2 && poussin.height < 0)
     {
@@ -201,6 +191,11 @@ int Game::update()
         cheatCode = 0;
         debugMaxScore = true;
     }
+    if (resetSaveCounter == 10)
+    {
+        maxScore = 0;
+        save();
+    }
     switch(gameState) {
         case 0: //Title Screen
             break;
@@ -253,6 +248,7 @@ int Game::update()
                 {
                     maxScore = score;
                     newMaxScore = true;
+                    save();
                 }
             }
 
@@ -299,10 +295,16 @@ void Game::reset()
 
 void Game::save()
 {
-    std::ofstream saveFile("poussinvolant.save");
+    std::ofstream saveFile;
+
+    saveFile.open("poussinvolant.save");
+    if(!saveFile)
+        saveFile.open("/mnt/Native games/poussinvolant.save");
 
     if(saveFile)
-        saveFile<<maxScore<<" "<<maxScoreKeyGen(maxScore);
+        saveFile<<maxScore<<" "<<poussin.skinNumber;
+
+    saveFile.close();
 }
 
 int Game::getState()

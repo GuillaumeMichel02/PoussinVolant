@@ -3,6 +3,7 @@
 
 #include <SDL/SDL.h>
 #include <deque>
+#include <iostream>
 #include <fstream>
 #include <random>
 #include <stdlib.h>
@@ -64,6 +65,7 @@ class Game
         Background background;
         int musicCommand;
         int cheatCode;
+        int resetSaveCounter;
         bool newMaxScore;
 
         Game();
