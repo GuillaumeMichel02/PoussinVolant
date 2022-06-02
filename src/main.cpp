@@ -36,19 +36,19 @@ int main(int argc, char *argv[])
     Mix_Music* music = Mix_LoadMUS("res/music.ogg");
     Mix_Chunk* hitSound = Mix_LoadWAV("res/bonk.wav");
 
-
     TTF_Init();
+    TTF_Font* fontBig = TTF_OpenFont("res/riffic-bold.ttf", 80);
+    TTF_Font* fontSmall = TTF_OpenFont("res/riffic-bold.ttf", 30);
 
-    TTF_Font *font = TTF_OpenFont("res/lazy.ttf", 50);
-
-    SDL_Color textColor = {0,0,0};
-
-    SDL_Surface* timeMessage = NULL;
+    TextManager textManager = TextManager(fontBig, fontSmall);
 
     Game game;
 
-    Display display(screen);
+    Display display(screen, &textManager);
 
+
+    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,100,100,100));
+    
     std::string scoreShow;
     
     auto currentTime = std::chrono::system_clock::now(), lastTime= currentTime;
@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
     while ( running )
     {      
         lastTime = std::chrono::system_clock::now();
-
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,0,0,0));
         game.update();
         if(game.musicCommand != 0)
@@ -210,11 +209,7 @@ int main(int argc, char *argv[])
         // int time_passed = 33 - (currentTime - lastTime > 0)?(currentTime - lastTime):0;
                 currentTime = std::chrono::system_clock::now();
         int timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime).count(); 
-        scoreShow = std::to_string(game.getScore());
-        timeMessage = TTF_RenderText_Solid(font, scoreShow.c_str(), textColor);
-        display.renderTime(timeMessage);
-        SDL_FreeSurface(timeMessage);
-         SDL_Flip(screen);
+        SDL_Flip(screen);
         if (timePassed < frameDuration)
             SDL_Delay(frameDuration-timePassed);
 
@@ -226,6 +221,9 @@ int main(int argc, char *argv[])
     Mix_FreeChunk(hitSound);
     Mix_FreeMusic(music);
     Mix_CloseAudio();
+    TTF_CloseFont(textManager.fontBig);
+    TTF_CloseFont(textManager.fontSmall);
+    TTF_Quit();
     SDL_Quit();
 
     return 0;

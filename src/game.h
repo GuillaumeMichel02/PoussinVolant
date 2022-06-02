@@ -48,6 +48,7 @@ class Game
         int maxScore;
         bool debugInvincibility;
         bool debugAutoplay;
+        bool debugMaxScore;
         
     public:
         Poussin poussin;
@@ -56,6 +57,7 @@ class Game
         int backgroundAutoScrollCycle;
         int musicCommand;
         int cheatCode;
+        bool newMaxScore;
 
         Game();
 

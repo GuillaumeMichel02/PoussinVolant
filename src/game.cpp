@@ -89,6 +89,8 @@ Game::Game()
     cheatCode = 0;
     debugInvincibility = false;
     debugAutoplay = false;
+    debugMaxScore = false;
+    newMaxScore = false;
 
 }
 
@@ -98,8 +100,9 @@ void Game::start()
     {
         gameState = 1;
         musicCommand = 1;
+        newMaxScore = false;
     }
-    else if (gameState == 2 && poussin.height < -10)
+    else if (gameState == 2 && poussin.height < 0)
     {
         reset();
     }
@@ -109,8 +112,8 @@ void Game::start()
 
 bool isHeightValid(int height1, int height2, int chanceHardObstacle, int score)
 {   
-    return  (height2 <= height1 - 90)
-            || (height2 >= height1 + 90)
+    return  (height2 <= height1 - 70)
+            || (height2 >= height1 + 70)
             ||((height2<=height1+40)
             && (height2>=height1-40)
             && (chanceHardObstacle <= 90) 
@@ -184,11 +187,13 @@ int Game::update()
     {
         debugInvincibility = !debugInvincibility;
         cheatCode = 0;
+        debugMaxScore = true;
     }
     if (cheatCode == 8)
     {
         debugAutoplay = !debugAutoplay;
         cheatCode = 0;
+        debugMaxScore = true;
     }
     switch(gameState) {
         case 0: //Title Screen
@@ -238,6 +243,11 @@ int Game::update()
                 musicCommand = 2;
                 poussin.movementFrame = 0;
                 gameState = 2;
+                if(!debugMaxScore && score > maxScore)
+                {
+                    maxScore = score;
+                    newMaxScore = true;
+                }
             }
 
             break;
