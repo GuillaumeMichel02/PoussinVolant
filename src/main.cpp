@@ -1,4 +1,3 @@
-//Include SDL functions and datatypes
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
 #include <SDL/SDL_image.h>
@@ -12,7 +11,6 @@
 
 #include "game/game.h"
 #include "display/display.h"
-// #include "input.h"
 
 int main(int argc, char *argv[])
 {   
@@ -93,14 +91,16 @@ int main(int argc, char *argv[])
             { 
                 switch(event.key.keysym.sym)
                 {
-                    case SDLK_a || SDLK_SPACE:
+                    case SDLK_a:
+                    case SDLK_SPACE:
                     {
                         game.start();
                         if(game.getState() == 1)
                             game.action();
                         break;
                     }
-                    case SDLK_b || SDLK_ESPACE:
+                    case SDLK_b:
+                    case SDLK_ESCAPE:
                     {
                         game.reset();
                         game.resetSaveCounter++;
@@ -141,6 +141,7 @@ int main(int argc, char *argv[])
                         break;
                     }
                     case SDLK_u:
+                    case SDLK_UP:
                     {
                         switch (game.cheatCode)
                         {
@@ -160,6 +161,7 @@ int main(int argc, char *argv[])
                         break;
                     }
                     case SDLK_d:
+                    case SDLK_DOWN:
                     {
                         switch (game.cheatCode)
                         {
@@ -177,6 +179,7 @@ int main(int argc, char *argv[])
                         break;
                     }
                     case SDLK_l:
+                    case SDLK_LEFT:
                     {   
                         switch (game.cheatCode)
                         {
@@ -197,6 +200,7 @@ int main(int argc, char *argv[])
                         break;
                     }
                     case SDLK_r:
+                    case SDLK_RIGHT:
                     {
                         game.cheatCode = 0;
                         break;

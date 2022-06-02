@@ -10,7 +10,6 @@ Display::Display(SDL_Surface* screen_temp, TextManager* textManager_temp)
 
     textManager = textManager_temp;
 
-    //Preload Background/Foreground images.
     spriteGeneralMap.insert(std::pair<std::string,SDL_Surface*>("Background",SDL_CreateRGBSurface(0,480,216,32,0,0,0,0)));
     applySurface(0,0,spriteSheet,spriteGeneralMap.at("Background"),&SPRITE_BACKGROUND);
     applySurface(240,0,spriteSheet,spriteGeneralMap.at("Background"),&SPRITE_BACKGROUND);

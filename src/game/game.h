@@ -21,7 +21,6 @@ class Poussin
         Poussin();
 };
 
-//YPosition of obstacle is the top-left corner of the top part of the obstacle
 class Obstacle
 {
     public:

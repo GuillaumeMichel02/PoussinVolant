@@ -19,9 +19,8 @@ class Display
         std::map<std::string,SDL_Surface*> spriteGeneralMap;
         std::map<int, SpriteBlit> spritePoussinMap;
         TextManager* textManager;
-
         SDL_Surface* loadImage( std::string filename, bool transparency );
-        // void applySurface( int xPosition, int yPosition, SDL_Surface* source, SpriteBlit sprite, SDL_Surface* destination );
+        
     public:
         Display(SDL_Surface* screen_temp, TextManager* textManager_temp);
         ~Display();
