@@ -10,9 +10,9 @@
 #include "sprite_blit.h"
 #include "text_manager.h"
 
-void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination);
-
 void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit);
+
+void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination);
 
 void renderBackground(SDL_Surface* screen, SDL_Surface* spriteBackground, int autoScrollCycle);
 

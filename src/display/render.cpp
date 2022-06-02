@@ -1,12 +1,6 @@
 #include "render.h"
 
-void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination)
-{
-    const SpriteBlit spriteBlit = SpriteBlit(0,0,source->w,source->h);
-    applySurface(xPosition, yPosition, source, destination, &spriteBlit);
-}
-
-void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit)
+void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination, const SpriteBlit* spriteBlit = SpriteBlit(0,0,source->w,source->h))
 {
     if (xPosition >= destination->w || yPosition >= destination->h) return;
 
@@ -43,6 +37,12 @@ void applySurface( int xPosition, int yPosition, SDL_Surface* source, SDL_Surfac
     SDL_BlitSurface( source, &crop, destination, &offset);
 
     
+}
+
+void applySurface(int xPosition, int yPosition, SDL_Surface* source, SDL_Surface* destination)
+{
+    const SpriteBlit spriteBlit = SpriteBlit(0,0,source->w,source->h);
+    applySurface(xPosition, yPosition, source, destination, &spriteBlit);
 }
 
 void renderBackground(SDL_Surface* screen, SDL_Surface* spriteBackground, int autoScrollCycle)
