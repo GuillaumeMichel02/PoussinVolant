@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Game
+Name=PoussinVolant
+Comment=Flappy Bird Clone, by Rinkuji
+Exec=PoussinVolant
+Icon=PoussinVolant
+Terminal=false
+Categories=games;
+

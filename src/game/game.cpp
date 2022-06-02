@@ -95,8 +95,9 @@ void Game::start()
         gameState = 1;
         musicCommand = 1;
         newMaxScore = false;
+        debugMaxScore = false;
         resetSaveCounter = 0;
-        save();
+        save(); 
     }
     else if (gameState == 2 && poussin.height < 0)
     {
@@ -183,12 +184,14 @@ int Game::update()
     {
         debugInvincibility = !debugInvincibility;
         cheatCode = 0;
-        debugMaxScore = true;
     }
     if (cheatCode == 8)
     {
         debugAutoplay = !debugAutoplay;
         cheatCode = 0;
+    }
+    if (debugAutoplay||debugInvincibility)
+    {
         debugMaxScore = true;
     }
     if (resetSaveCounter == 10)

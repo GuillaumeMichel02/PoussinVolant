@@ -10,7 +10,6 @@
 #include <map>
 #include <chrono>
 
-// #include "menu.h"
 #include "game/game.h"
 #include "display/display.h"
 // #include "input.h"
@@ -94,14 +93,14 @@ int main(int argc, char *argv[])
             { 
                 switch(event.key.keysym.sym)
                 {
-                    case SDLK_a:
+                    case SDLK_a || SDLK_SPACE:
                     {
                         game.start();
                         if(game.getState() == 1)
                             game.action();
                         break;
                     }
-                    case SDLK_b:
+                    case SDLK_b || SDLK_ESPACE:
                     {
                         game.reset();
                         game.resetSaveCounter++;
@@ -139,7 +138,6 @@ int main(int argc, char *argv[])
                     case SDLK_q:
                     {
                         running = false;
-                        Mix_HaltMusic( );
                         break;
                     }
                     case SDLK_u:
@@ -211,18 +209,16 @@ int main(int argc, char *argv[])
             }
         }
 
-        // int time_passed = 33 - (currentTime - lastTime > 0)?(currentTime - lastTime):0;
-                currentTime = std::chrono::system_clock::now();
+        currentTime = std::chrono::system_clock::now();
         int timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime).count(); 
         SDL_Flip(screen);
         if (timePassed < frameDuration)
             SDL_Delay(frameDuration-timePassed);
 
-        //SDL_framerateDelay(fpsManager);
-
         
     }
     /// Deinit SDL
+    Mix_HaltMusic();
     Mix_FreeChunk(hitSound);
     Mix_FreeMusic(music);
     Mix_CloseAudio();

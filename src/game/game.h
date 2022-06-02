@@ -2,7 +2,6 @@
 #define GAME_H
 
 #include <SDL/SDL.h>
-#include <deque>
 #include <iostream>
 #include <fstream>
 #include <random>
