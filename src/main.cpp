@@ -28,6 +28,11 @@ int main(int argc, char *argv[])
     SDL_Surface* screen = SDL_SetVideoMode(240, 240, 32,
                           SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
 
+    // SDL_Surface* icon = IMG_Load("res/PoussinVolant.png");
+    // SDL_WM_SetIcon(icon, NULL);
+    // SDL_WM_SetCaption("Poussin Volant", "Poussin Volant");
+    // SDL_FreeSurface(icon);
+
     Mix_OpenAudio( 96000, MIX_DEFAULT_FORMAT, 1, 4096);
 
     Mix_Music* music = Mix_LoadMUS("res/music.ogg");
